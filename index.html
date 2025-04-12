@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Loja de produtos de informática, incluindo teclados, mouses, webcams e muito mais.">
+    <meta name="keywords" content="e-commerce, informática, teclado, mouse, webcam, compras online">
+    <title>Note Tech</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <img src="img/logo.png" alt="Note Tech">
+            </div>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="#">Início</a></li>
+                    <li><a href="#">Produtos</a></li>
+                    <li><a href="#">Sobre</a></li>
+                    <li><a href="#">Contato</a></li>
+                </ul>
+            </nav>
+            <div class="cart">
+                <button id="cart-btn"> 🛒 Carrinho (<span id="cart-count">0</span>)</button>
+                <button onclick="openLoginModal()">Login</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="product-list">
+            <div class="product">
+                <img src="img/dell-g15.avif" alt="Dell G15">
+                <h2>Dell G15</h2>
+                <p>R$ 5.499,00</p>
+                <button class="add-to-cart" data-id="1" data-name="Dell G15" data-price="5499.00" data-img="img/dell-g15.avif">Adicionar ao Carrinho</button>
+            </div>
+
+            <div class="product">
+                <img src="img/acer-nitro-5.webp" alt="Acer Nitro 5">
+                <h2>Acer Nitro 5</h2>
+                <p>R$ 5.399,00</p>
+                <button class="add-to-cart" data-id="2" data-name="Acer Nitro 5" data-price="5399.00" data-img="img/acer-nitro-5.webp">Adicionar ao Carrinho</button>
+            </div>
+
+            <div class="product">
+                <img src="img/tuf-f15.jpg" alt="TUF F15">
+                <h2>TUF F15</h2>
+                <p>R$ 5.559,99</p>
+                <button class="add-to-cart" data-id="3" data-name="TUF F15" data-price="5559.99" data-img="img/tuf-f15.jpg">Adicionar ao Carrinho</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modais (Login, Cadastro, Carrinho, Pagamento) -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal(loginModal)">&times;</span>
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" required placeholder="Digite seu e-mail">
+                <label for="login-password">Senha</label>
+                <input type="password" id="login-password" required placeholder="Digite sua senha">
+                <button type="submit">Entrar</button>
+            </form>
+            <p class="modal-footer">Não tem uma conta? <a href="#" onclick="openRegisterModal()">Cadastrar-se</a></p>
+        </div>
+    </div>
+
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal(registerModal)">&times;</span>
+            <h2>Cadastro</h2>
+            <form id="register-form">
+                <label for="username">Nome</label>
+                <input type="text" id="username" required placeholder="Digite seu nome">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" required placeholder="Digite seu e-mail">
+                <label for="password">Senha</label>
+                <input type="password" id="password" required placeholder="Digite sua senha">
+                <button type="submit">Cadastrar</button>
+            </form>
+            <p class="modal-footer">Já tem uma conta? <a href="#" onclick="openLoginModal()">Entrar</a></p>
+        </div>
+    </div>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal(cartModal)">&times;</span>
+            <h2>Seu Carrinho</h2>
+            <ul id="cart-items"></ul>
+            <p id="total">Total: R$ 0,00</p>
+            <button id="checkout-btn">Finalizar Compra</button>
+            <button id="clear-cart-btn">Esvaziar Carrinho</button>
+        </div>
+    </div>
+
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal(paymentModal)">&times;</span>
+            <h2>Forma de Pagamento</h2>
+            <form id="payment-form">
+                <label for="card-name">Nome do Titular</label>
+                <input type="text" id="card-name" required placeholder="Nome completo">
+                <label for="card-number">Número do Cartão</label>
+                <input type="text" id="card-number" required placeholder="Número do cartão">
+                <label for="expiry-date">Data de Validade</label>
+                <input type="month" id="expiry-date" required>
+                <label for="cvv">Código de Segurança (CVV)</label>
+                <input type="text" id="cvv" required placeholder="CVV">
+                <button type="submit">Confirmar Pagamento</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const registerModal = document.getElementById('register-modal');
+        const loginModal = document.getElementById('login-modal');
+        const cartModal = document.getElementById('cart-modal');
+        const paymentModal = document.getElementById('payment-modal');
+
+        function openModal(modal) {
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(modal) {
+            modal.style.display = 'none';
+        }
+
+        function openLoginModal() {
+            closeModal(registerModal);
+            openModal(loginModal);
+        }
+
+        function openRegisterModal() {
+            closeModal(loginModal);
+            openModal(registerModal);
+        }
+
+        const cart = [];
+        const cartCountElement = document.getElementById('cart-count');
+        const cartItemsElement = document.getElementById('cart-items');
+        const totalElement = document.getElementById('total');
+        const cartBtn = document.getElementById('cart-btn');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const clearCartBtn = document.getElementById('clear-cart-btn');
+
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', () => {
+                const product = {
+                    id: button.dataset.id,
+                    name: button.dataset.name,
+                    price: parseFloat(button.dataset.price),
+                    img: button.dataset.img
+                };
+                addToCart(product);
+            });
+        });
+
+        function addToCart(product) {
+            cart.push(product);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCart();
+            alert(`${product.name} foi adicionado ao carrinho.`);
+        }
+
+        function updateCart() {
+            cartCountElement.textContent = cart.length;
+            cartItemsElement.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartItemsElement.innerHTML = '<p class="empty-cart-message">Seu carrinho está vazio </p>';
+                totalElement.textContent = 'Total: R$ 0,00';
+                return;
+            }
+
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="cart-item-card">
+                        <img src="${item.img}" alt="${item.name}" class="cart-item-img">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <p>R$ ${item.price.toFixed(2)}</p>
+                        </div>
+                        <button class="remove-btn" data-index="${index}">Remover</button>
+                    </div>
+                `;
+                cartItemsElement.appendChild(li);
+                total += item.price;
+            });
+
+            totalElement.textContent = `Total: R$ ${total.toFixed(2)}`;
+
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', e => {
+                    const index = e.target.dataset.index;
+                    cart.splice(index, 1);
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    updateCart();
+                });
+            });
+        }
+
+        cartBtn.addEventListener('click', () => openModal(cartModal));
+
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length === 0) {
+                alert("Seu carrinho está vazio!");
+            } else {
+                closeModal(cartModal);
+                openModal(paymentModal);
+            }
+        });
+
+        if (clearCartBtn) {
+            clearCartBtn.addEventListener('click', () => {
+                cart.length = 0;
+                localStorage.removeItem('cart');
+                updateCart();
+            });
+        }
+
+        window.onload = () => {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cart.push(...JSON.parse(savedCart));
+                updateCart();
+            }
+            // Processar o formulário de pagamento
+document.getElementById('payment-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // Aqui você pode validar os dados ou integrar com uma API de pagamento real
+    alert("Pagamento confirmado! Obrigado pela sua compra.");
+
+    cart.length = 0;
+    localStorage.removeItem('cart');
+    updateCart();
+
+    closeModal(paymentModal);
+});
+
+        };
+    </script>
+</body>
+</html>
+
+<style>
+
+    header {
+        background-color: #333;
+        color: white;
+        padding: 20px 0;
+    }
+    
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 90%;
+        margin: 0 auto;
+    }
+    
+    .navbar ul {
+        list-style: none;
+        display: flex;
+        gap: 15px;
+    }
+    
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        font-size: 18px;
+    }
+    
+    .navbar a:hover {
+        color: #007bff;
+    }
+    
+    .cart button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+    }
+    
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Fonte padrão e cor de fundo */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        
+        /* Estilo do cabeçalho */
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cart button, header button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .cart button:hover, header button:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Lista de produtos */
+        .product-list {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 50px;
+        }
+        
+        /* Estilo do item do produto */
+        .product-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 30px;
+        padding: 95px;
+    }
+    
+    .product {
+        background-color: #fff;
+        border-radius: 50px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        text-align: center;
+        padding: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product img {
+        width: 90%;
+        height: 300px; 
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+        /* Botões gerais */
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Estilo do modal de carrinho */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+    
+        #cart-items {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+        text-align: left;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    #cart-items li {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .remove-btn {
+        background-color: #ff4d4d;
+        border: none;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .remove-btn:hover {
+        background-color: #cc0000;
+    }
+    
+        
+        /* Conteúdo do modal */
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            position: relative;
+            text-align: center;
+        }
+        
+        /* Botão de fechar o modal */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            color: #ff4d4d;
+        }
+    
+        /* Estilo dos modais (Login e Cadastro) */
+        .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    /* Conteúdo do Modal */
+    .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        width: 350px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    
+    /* Título */
+    .modal-content h2 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    /* Botão de Fechar Modal */
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 22px;
+        cursor: pointer;
+        color: #333;
+        transition: color 0.3s ease;
+    }
+    
+    .close-btn:hover {
+        color: #ff4d4d;
+    }
+    
+    /* Campos de entrada */
+    input {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    
+    input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    
+    /* Botão de submit */
+    button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    
+    button:hover {
+        background-color: #0056b3;
+    }   
+    
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        cursor: pointer;
+        color: #333;
+    }
+    
+    .close-btn:hover {
+        color: #ff4d4d;
+    }
+    
+    /* Links na parte inferior dos modais */
+    .modal-footer {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #555;
+    }
+    
+    .modal-footer a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .modal-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        width: 350px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    input {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    
+    input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    
+    
+    /* Ajustes para dispositivos móveis */
+    @media (max-width: 600px) {
+    .cart-item-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cart-item-img {
+        width: 100%;
+        max-width: 120px;
+        margin-bottom: 10px;
+    }
+
+    .remove-btn {
+        align-self: flex-end;
+        margin-top: 10px;
+    }
+}
+
+
+    .empty-cart-message {
+    text-align: center;
+    color: #888;
+    font-size: 16px;
+    margin: 20px 0;
+    font-style: italic;
+}
+
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    animation: fadeInUp 0.5s ease;
+    transition: transform 0.3s ease;
+}
+
+.cart-item-card:hover {
+    transform: scale(1.02);
+}
+
+.cart-item-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.cart-item-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.cart-item-info p {
+    margin: 5px 0 0;
+    color: #666;
+    font-weight: bold;
+}
+
+.remove-btn {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: auto;
+}
+
+.remove-btn:hover {
+    background-color: #d9363e;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+    
+</style>
